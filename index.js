@@ -1,6 +1,29 @@
 const Color = require("color");
 
 const THEMES = {
+  aura: {
+    colors: {
+      black: "#211c1c",
+      red: "#FF577F",
+      green: "#2FDD92",
+      yellow: "#FEC260",
+      blue: "#767cd3",
+      cyan: "#C996CC",
+      magenta: "#ad88ff",
+      white: "#9d93c6",
+      lightBlack: "#72696a",
+      lightRed: "#FF577F",
+      lightGreen: "#2FDD92",
+      lightYellow: "#FEC260",
+      lightBlue: "#767cd3",
+      lightMagenta: "#a8a9eb",
+      lightCyan: "#C996CC",
+      lightWhite: "#9d93c6",
+    },
+    defaultAccent: "magenta",
+    backgroundColor: "#21202e",
+    foregroundColor: "#9d93c6",
+  },
   moonlight: {
     colors: {
       black: "#211c1c",
@@ -20,6 +43,7 @@ const THEMES = {
       lightCyan: "#C996CC",
       lightWhite: "#9d93c6",
     },
+    defaultAccent: "blue",
     backgroundColor: "#2e2160",
     foregroundColor: "#9d93c6",
   },
@@ -42,6 +66,7 @@ const THEMES = {
       lightCyan: "#96BAFF",
       lightWhite: "#D4ECDD",
     },
+    defaultAccent: "green",
     foregroundColor: "#6e929e",
     backgroundColor: "#152D35"
   },
@@ -64,6 +89,7 @@ const THEMES = {
       lightCyan: "#B2B1B9",
       lightWhite: "#EDEDED",
     },
+    defaultAccent: "white",
     foregroundColor: "#EDEDED",
     backgroundColor: "#171717"
   },
@@ -72,7 +98,7 @@ const THEMES = {
       black: "#211c1c",
       red: "#FF4848",
       green: "#9AE66E",
-      yellow: "#FFC069",
+      yellow: "#bf9354",
       blue: "#82736b",
       cyan: "#EFEFEF",
       magenta: "#EFEFEF",
@@ -80,12 +106,13 @@ const THEMES = {
       lightBlack: "#72696a",
       lightRed: "#FF4848",
       lightGreen: "#9AE66E",
-      lightYellow: "#FFC069",
+      lightYellow: "#ffcb77",
       lightBlue: "#82736b",
       lightMagenta: "#EFEFEF",
       lightCyan: "#EFEFEF",
       lightWhite: "#9b887d",
     },
+    defaultAccent: "yellow",
     foregroundColor: "#9b887d",
     backgroundColor: "#4A403A"
   }
@@ -95,9 +122,10 @@ exports.decorateConfig = (config) => {
   const settings = config.hyperEverest || {};
   const theme = THEMES[settings.theme || "moonlight"] || THEMES["moonlight"];
 
-  const accentColor = theme.colors[settings.accent || "yellow"];
+  const accentColor = settings.accent ? theme.colors[settings.accent] : theme.defaultAccent;
+  const cursorColor = theme.colors.white;
   const colors = Object.values(theme.colors);
-  const backgroundColor = Color(theme.backgroundColor).darken(0.4).rgb().string()
+  const backgroundColor = Color(theme.backgroundColor).darken(settings.darken ?? 0.4).rgb().string()
   const { foregroundColor } = theme;
   const tabHeight = "42px";
 
@@ -116,51 +144,66 @@ exports.decorateConfig = (config) => {
     ...config,
     foregroundColor,
     backgroundColor,
-    cursorColor: Color(accentColor).rgb().string(),
+    cursorColor: Color(cursorColor).rgb().string(),
     borderColor: backgroundColor,
     selectionColor: Color(accentColor).fade(0.7).rgb().string(),
-    cursorAccentColor: Color(accentColor).rgb().string(),
+    cursorAccentColor: Color(cursorColor).rgb().string(),
     colors,
     css: `
+      .wrapper {
+        color: #ad88ff !important;
+      }
+      .line {
+        font-size: 10px !important;
+        font-weight: normal !important;
+        height: 28px !important;
+        box-shadow: 0px 0px 40px rgb(0 0 0 / 50%) !important;
+        background: #1c1b22 !important;
+      }
+      .header_appTitle {
+        display: none !important;
+      }
+      .splitpane_divider {
+        background-color: rgb(46 44 65) !important;
+      }
       .tabs_nav {
         height: ${tabHeight};
-        line-height: ${tabHeight};
+        width: max-content !important;
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 0px 50px !important;
       }
       .tabs_borderShim {
-        display: "none";
         top: 0;
         bottom: 0;
         width: 76px;
-        border: 0 !important;
-        background: rgba(0, 0, 0, .1);
+        background: red;
+      }
+      .tabs_list {
+        max-height: unset !important;
       }
       .tab_tab {
         border: 0;
-        min-width: 90px;
-        padding-left: 0;
         height: ${tabHeight};
-        border: 0 !important;
         transition: border ease .1s, background ease .2s;
-        background: rgba(0, 0, 0, 0.1);
+        background: transparent;
+        font-family: "Geist Mono", monospace;
+        opacity: 0.3;
+        color: ${accentColor};
+        flex: 1 !important;
+        min-width: 110px;
       }
       .tab_tab.tab_active {
         z-index: 2;
         height: calc(${tabHeight} - 1px);
         background: rgba(0, 0, 0, 0);
         box-shadow: none;
+        border-bottom: 2px solid ${accentColor} !important;
+        color: ${accentColor};
+        opacity: 1;
       }
-      .tab_tab.tab_active::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: -1px;
-        display: block;
-        height: 1px;
-        box-shadow: none;
-      }
-      .tab_tab.tab_active:hover {
-        background: "rgba(0, 0, 0, 0)";
+      .tab_tab:hover {
+        opacity: 0.9
       }
     `,
   };
